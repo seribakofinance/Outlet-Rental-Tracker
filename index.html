@@ -444,8 +444,12 @@ async function sdbCreate(sheet, rowObj){
     headers:{'Content-Type':'application/json'},
     body: JSON.stringify({data:[rowObj]})
   });
-  if(!res.ok) throw new Error('POST failed: '+sheet);
-  return res.json();
+  const json = await res.json().catch(()=>({}));
+  if(!res.ok){
+    console.error('SheetDB POST error on sheet "'+sheet+'":', json);
+    throw new Error(json.error || ('POST failed: '+sheet));
+  }
+  return json;
 }
 async function sdbUpdate(sheet, column, value, rowObj){
   const res = await fetch(`${SDB_BASE}/${encodeURIComponent(column)}/${encodeURIComponent(value)}?sheet=${encodeURIComponent(sheet)}`, {
@@ -453,8 +457,12 @@ async function sdbUpdate(sheet, column, value, rowObj){
     headers:{'Content-Type':'application/json'},
     body: JSON.stringify({data:rowObj})
   });
-  if(!res.ok) throw new Error('PATCH failed: '+sheet);
-  return res.json();
+  const json = await res.json().catch(()=>({}));
+  if(!res.ok){
+    console.error('SheetDB PATCH error on sheet "'+sheet+'", column "'+column+'":', json);
+    throw new Error(json.error || ('PATCH failed: '+sheet));
+  }
+  return json;
 }
 async function sdbDelete(sheet, column, value){
   const res = await fetch(`${SDB_BASE}/${encodeURIComponent(column)}/${encodeURIComponent(value)}?sheet=${encodeURIComponent(sheet)}`, {
@@ -470,8 +478,8 @@ async function sdbUpsertRecord(recId, rowObj){
       await sdbCreate(SHEET_RECORDS, Object.assign({recordId:recId}, rowObj));
     }
   }catch(e){
-    console.error(e);
-    showToast('Sync failed — check your internet connection');
+    console.error('sdbUpsertRecord failed:', e);
+    showToast('Sync failed: '+(e.message||'check the Records tab headers'));
   }
 }
 
