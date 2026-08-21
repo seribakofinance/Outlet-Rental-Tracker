@@ -472,14 +472,21 @@ async function sdbDelete(sheet, column, value){
   return res.json();
 }
 async function sdbUpsertRecord(recId, rowObj){
+  let patched = false;
   try{
     const patchResult = await sdbUpdate(SHEET_RECORDS, 'recordId', recId, rowObj);
-    if(!patchResult.updated || patchResult.updated===0){
-      await sdbCreate(SHEET_RECORDS, Object.assign({recordId:recId}, rowObj));
-    }
+    patched = !!(patchResult && patchResult.updated > 0);
   }catch(e){
-    console.error('sdbUpsertRecord failed:', e);
-    showToast('Sync failed: '+(e.message||'check the Records tab headers'));
+    // No existing row for this month/bill yet — expected on first save, not a real error.
+    patched = false;
+  }
+  if(!patched){
+    try{
+      await sdbCreate(SHEET_RECORDS, Object.assign({recordId:recId}, rowObj));
+    }catch(e2){
+      console.error('sdbUpsertRecord create failed:', e2);
+      showToast('Sync failed: '+(e2.message||'check the Records tab headers'));
+    }
   }
 }
 
