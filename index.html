@@ -33,7 +33,6 @@
     -webkit-font-smoothing:antialiased;
   }
   .mono{font-family:'JetBrains Mono',monospace; font-variant-numeric:tabular-nums;}
-  .display{font-family:'Space Grotesk',sans-serif;}
 
   .wrap{max-width:1180px;margin:0 auto;padding:28px 20px 60px;}
 
@@ -100,30 +99,74 @@
   .btn.primary:hover{background:var(--navy-soft);}
   .btn.danger{background:var(--coral-soft);color:#B5392A;border-color:var(--coral-soft);}
   .btn.danger:hover{background:var(--coral);color:#fff;}
-  .btn.ghost{border:none;color:var(--muted);}
-  .btn.ghost:hover{color:var(--coral);background:transparent;}
-  .btn:disabled{opacity:.5;cursor:not-allowed;}
+  .btn.small{padding:5px 10px;font-size:12px;}
 
-  table{width:100%;border-collapse:collapse;}
-  thead th{
-    text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.06em;
-    color:var(--muted);font-weight:600;padding:12px 16px;border-bottom:1px solid var(--line);
-    white-space:nowrap;
-  }
-  tbody td{
-    padding:10px 16px;border-bottom:1px solid var(--line);vertical-align:middle;
-  }
-  tbody tr:last-child td{border-bottom:none;}
-  tbody tr:hover{background:#FCFBF9;}
-  .outlet-name{font-weight:600;font-size:14px;}
-  .outlet-name .sub{display:block;font-size:11px;color:var(--muted);font-weight:400;margin-top:2px;}
+  .empty{padding:40px 20px;text-align:center;color:var(--muted);font-size:14px;}
+  .loading{padding:40px 20px;text-align:center;color:var(--muted);font-size:14px;}
 
-  .cell-bill{min-width:132px;}
+  /* ---- outlet management (add / period / end) ---- */
+  .config{padding:18px 20px;}
+  .eyebrow2{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:600;margin:18px 0 10px;}
+  .eyebrow2:first-child{margin-top:0;}
+  .config input{
+    border:1px solid var(--line);border-radius:9px;
+    padding:8px 12px;font-size:13px;font-family:'Inter',sans-serif;outline:none;
+  }
+  .config input:focus{border-color:var(--navy);}
+  .add-outlet-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:6px;}
+  .add-outlet-row input.oname-new{flex:1;min-width:180px;}
+  .add-outlet-row input[type=month]{min-width:130px;}
+  .field-hint{font-size:10.5px;color:var(--muted);margin-bottom:10px;}
+
+  .outlet-row{
+    display:grid;grid-template-columns:1.4fr 1fr 1fr auto;gap:8px;align-items:center;
+    margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid var(--line);
+  }
+  .outlet-row:last-child{border-bottom:none;}
+  .outlet-row input{width:100%;}
+  .outlet-row .period-label{font-size:10.5px;color:var(--muted);margin-top:3px;}
+
+  /* ---- per-outlet bill cards (main dashboard) ---- */
+  .outlet-card{
+    background:var(--card);border:1px solid var(--line);border-radius:16px;
+    margin-bottom:16px;overflow:hidden;
+  }
+  .oc-head{
+    display:flex;justify-content:space-between;align-items:flex-start;
+    padding:16px 20px;border-bottom:1px solid var(--line);gap:10px;flex-wrap:wrap;
+  }
+  .oc-name{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:15px;}
+  .oc-period{font-size:11px;color:var(--muted);margin-top:3px;}
+  .oc-summary{display:flex;gap:10px;font-size:11px;color:var(--muted);flex-wrap:wrap;}
+  .oc-summary b{color:var(--text);font-family:'JetBrains Mono',monospace;}
+
+  .bills-table{width:100%;border-collapse:collapse;}
+  .bills-table thead th{
+    text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;
+    color:var(--muted);font-weight:600;padding:10px 20px;border-bottom:1px solid var(--line);
+  }
+  .bills-table tbody td{padding:9px 20px;border-bottom:1px solid var(--line);vertical-align:middle;}
+  .bills-table tbody tr:last-child td{border-bottom:none;}
+  .bills-table tbody tr:hover{background:#FCFBF9;}
+  .bname-cell input{
+    border:1px solid transparent;background:transparent;font-size:13px;font-weight:600;
+    padding:4px 6px;border-radius:6px;width:100%;font-family:'Inter',sans-serif;outline:none;
+  }
+  .bname-cell input:hover, .bname-cell input:focus{border-color:var(--line);background:var(--slate-soft);}
+  .num-cell input{
+    border:1px solid transparent;background:transparent;font-size:12.5px;
+    padding:4px 6px;border-radius:6px;width:78px;font-family:'JetBrains Mono',monospace;outline:none;
+  }
+  .num-cell input:hover, .num-cell input:focus{border-color:var(--line);background:var(--slate-soft);}
+  .meta{font-size:10.5px;color:var(--muted);margin-top:3px;line-height:1.4;}
+  .bill-del{background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;}
+  .bill-del:hover{color:var(--coral);}
+
   .status-pill{
     display:inline-flex;align-items:center;gap:6px;
     padding:5px 10px;border-radius:20px;font-size:12px;font-weight:600;
     cursor:pointer;border:1px solid transparent;user-select:none;
-    transition:transform .1s;
+    transition:transform .1s;white-space:nowrap;
   }
   .status-pill:active{transform:scale(.96);}
   .status-pill .dot{width:6px;height:6px;border-radius:50%;}
@@ -135,8 +178,18 @@
   .status-overdue .dot{background:var(--coral);}
   .status-na{background:var(--slate-soft);color:#A7ABB8;}
   .status-na .dot{background:#C7CBD6;}
-  .amt{font-size:11px;color:var(--muted);margin-top:3px;}
-  .meta{font-size:10.5px;color:var(--muted);margin-top:3px;line-height:1.4;}
+
+  .add-bill-row{
+    display:flex;gap:8px;flex-wrap:wrap;align-items:center;
+    padding:12px 20px;background:#FCFBF9;
+  }
+  .add-bill-row input{
+    border:1px solid var(--line);border-radius:8px;padding:7px 10px;font-size:12.5px;outline:none;
+  }
+  .add-bill-row input.abname{flex:1;min-width:140px;}
+  .add-bill-row input.abamt, .add-bill-row input.abdue{width:110px;}
+  .add-bill-row input:focus{border-color:var(--navy);}
+  .no-bills{padding:16px 20px;font-size:12.5px;color:var(--muted);}
 
   .rail{display:flex;gap:3px;align-items:center;}
   .rail .d{width:8px;height:8px;border-radius:50%;background:#DCDEE5;}
@@ -144,41 +197,9 @@
   .rail .d.on-pending{background:var(--amber);}
   .rail .d.on-overdue{background:var(--coral);}
   .rail .d.inactive{background:transparent;border:1px dashed #D7D9E0;}
-
-  .empty{padding:40px 20px;text-align:center;color:var(--muted);font-size:14px;}
-  .loading{padding:40px 20px;text-align:center;color:var(--muted);font-size:14px;}
-
-  .config{padding:18px 20px;}
-  .eyebrow2{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:600;margin:18px 0 10px;}
-  .eyebrow2:first-child{margin-top:0;}
-  .config input{
-    border:1px solid var(--line);border-radius:9px;
-    padding:8px 12px;font-size:13px;font-family:'Inter',sans-serif;outline:none;
-  }
-  .config input:focus{border-color:var(--navy);}
-
-  .add-outlet-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px;}
-  .add-outlet-row input.oname-new{flex:1;min-width:180px;}
-  .add-outlet-row input[type=month]{min-width:130px;}
-  .field-hint{font-size:10.5px;color:var(--muted);width:100%;margin-top:-6px;margin-bottom:10px;}
-
-  .outlet-row{
-    display:grid;grid-template-columns:1.4fr 1fr 1fr auto;gap:8px;align-items:center;
-    margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid var(--line);
-  }
-  .outlet-row:last-child{border-bottom:none;}
-  .outlet-row input{width:100%;}
-  .outlet-row .period-label{font-size:10.5px;color:var(--muted);margin-top:3px;}
-
-  .bill-config{margin-top:14px;}
-  .bill-row{
-    display:grid;grid-template-columns:1.3fr .7fr .6fr auto;gap:8px;
-    margin-bottom:8px;align-items:center;
-  }
-  .bill-row input{border:1px solid var(--line);border-radius:8px;padding:7px 10px;font-size:13px;outline:none;width:100%;}
-  .bill-row input:focus{border-color:var(--navy);}
-  .bill-row .del{background:none;border:none;color:var(--muted);cursor:pointer;font-size:15px;}
-  .bill-row .del:hover{color:var(--coral);}
+  table.rail-table{width:100%;border-collapse:collapse;}
+  table.rail-table td{padding:10px 16px;border-bottom:1px solid var(--line);vertical-align:middle;}
+  table.rail-table tr:last-child td{border-bottom:none;}
 
   .toast{
     position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
@@ -188,7 +209,7 @@
   }
   .toast.show{opacity:1;transform:translateX(-50%) translateY(-4px);}
 
-  .legend{display:flex;gap:16px;font-size:12px;color:var(--muted);margin-top:10px;flex-wrap:wrap;}
+  .legend{display:flex;gap:16px;font-size:12px;color:var(--muted);margin:14px 20px 4px;flex-wrap:wrap;}
   .legend span{display:inline-flex;align-items:center;gap:6px;}
   .legend .dot{width:8px;height:8px;border-radius:50%;}
 
@@ -228,11 +249,10 @@
 
   @media(max-width:640px){
     .stats{grid-template-columns:repeat(2,1fr);}
-    thead{display:none;}
-    table, tbody, tr, td{display:block;width:100%;}
-    tbody tr{border-bottom:1px solid var(--line);padding:12px 16px;}
-    tbody td{border:none;padding:6px 0;}
-    .cell-bill{min-width:0;}
+    .bills-table thead{display:none;}
+    .bills-table, .bills-table tbody, .bills-table tr, .bills-table td{display:block;width:100%;}
+    .bills-table tbody tr{border-bottom:1px solid var(--line);padding:10px 20px;}
+    .bills-table tbody td{border:none;padding:4px 0;}
     .outlet-row{grid-template-columns:1fr;}
   }
 </style>
@@ -270,10 +290,9 @@
 
     <div class="panel">
       <div class="panel-head">
-        <h2 id="tableTitle">This month's bills</h2>
-        <button class="btn" id="toggleConfig">Manage outlets & bills</button>
+        <h2>Outlets</h2>
+        <button class="btn" id="toggleConfig">Add / manage outlets</button>
       </div>
-
       <div id="configPanel" style="display:none;border-bottom:1px solid var(--line);">
         <div class="config">
           <div class="eyebrow2">Add outlet</div>
@@ -283,40 +302,32 @@
             <input type="month" id="newOutletEnd" title="Leave blank if ongoing" />
             <button class="btn primary" id="addOutletBtn">Add outlet</button>
           </div>
-          <div class="field-hint">Start = first month it appears. End = leave blank if still operating.</div>
+          <div class="field-hint">Start = first month it appears. End = leave blank if still operating. Bills for this outlet are added inside its card below.</div>
 
           <div class="eyebrow2">Outlets & their active period</div>
           <div id="outletRows"></div>
-
-          <div class="eyebrow2 bill-config">Recurring bills (applies to every outlet)</div>
-          <div id="billRows"></div>
-          <button class="btn" id="addBillBtn" style="margin-top:4px;">+ Add bill type</button>
         </div>
       </div>
+    </div>
 
-      <div style="overflow-x:auto;">
-        <table id="mainTable">
-          <thead><tr id="headRow"></tr></thead>
-          <tbody id="bodyRows"></tbody>
-        </table>
-      </div>
-      <div class="empty" id="emptyState" style="display:none;">No outlets active this month. Click "Manage outlets & bills" to add one.</div>
-      <div style="padding:14px 20px 18px;">
-        <div class="legend">
-          <span><span class="dot" style="background:var(--teal);"></span>Paid</span>
-          <span><span class="dot" style="background:var(--amber);"></span>Pending</span>
-          <span><span class="dot" style="background:var(--coral);"></span>Overdue</span>
-          <span>Click a status pill to cycle: Pending → Paid → Overdue → Pending.</span>
-        </div>
+    <div id="tableTitle" style="font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:15px;margin:0 0 12px;"></div>
+
+    <div id="outletCards"></div>
+    <div class="empty" id="emptyState" style="display:none;">No outlets active this month. Click "Add / manage outlets" to add one.</div>
+
+    <div class="panel" style="padding-bottom:4px;">
+      <div class="legend">
+        <span><span class="dot" style="background:var(--teal);"></span>Paid</span>
+        <span><span class="dot" style="background:var(--amber);"></span>Pending</span>
+        <span><span class="dot" style="background:var(--coral);"></span>Overdue</span>
+        <span>Click a status pill to cycle: Pending → Paid → Overdue → Pending.</span>
       </div>
     </div>
 
     <div class="panel" id="railPanel">
       <div class="panel-head"><h2>6-month history</h2></div>
       <div style="overflow-x:auto;">
-        <table>
-          <tbody id="railRows"></tbody>
-        </table>
+        <table class="rail-table"><tbody id="railRows"></tbody></table>
       </div>
     </div>
   </div>
@@ -352,14 +363,14 @@
 // ================= SheetDB config =================
 const SDB_BASE = 'https://sheetdb.io/api/v1/4hwnweev7uowx';
 const SHEET_OUTLETS = 'Outlets';       // columns: id, name, startMonth, endMonth
-const SHEET_BILLTYPES = 'BillTypes';   // columns: id, name, amount, dueDay
+const SHEET_BILLTYPES = 'BillTypes';   // columns: id, outletId, name, amount, dueDay
 const SHEET_RECORDS = 'Records';       // columns: recordId, outletId, billId, monthKey, status, amount, paidDate, updatedBy, updatedAt
 
 const STATUS_CYCLE = ['pending','paid','overdue'];
 
 let state = {
   outlets: [],       // [{id,name,startMonth,endMonth}]
-  billTypes: [],      // [{id,name,amount,dueDay}]
+  billTypes: [],      // [{id,outletId,name,amount,dueDay}]
   records: {}         // key `${outletId}|${billId}|${YYYY-MM}` -> {status, amount, paidDate, updatedBy, updatedAt}
 };
 
@@ -422,7 +433,7 @@ async function sdbUpsertRecord(recId, rowObj){
   }
 }
 
-// ================= Load / persist =================
+// ================= Load =================
 async function loadState(){
   try{
     const [outletsRows, billRows, recordRows] = await Promise.all([
@@ -435,7 +446,7 @@ async function loadState(){
       id:r.id, name:r.name, startMonth:r.startMonth||'', endMonth:r.endMonth||''
     }));
     state.billTypes = (billRows||[]).map(r=>({
-      id:r.id, name:r.name, amount:Number(r.amount)||0, dueDay:Number(r.dueDay)||1
+      id:r.id, outletId:r.outletId, name:r.name, amount:Number(r.amount)||0, dueDay:Number(r.dueDay)||1
     }));
     state.records = {};
     (recordRows||[]).forEach(r=>{
@@ -501,9 +512,8 @@ function getRecord(outletId, billId, mKey){
 function setRecordLocal(outletId, billId, mKey, data){
   state.records[`${outletId}|${billId}|${mKey}`] = data;
 }
-
 function computeStatus(rec, bill, mKey, todayKey, todayDate){
-  if(rec && rec.status) return rec.status; // explicit, manually set value always wins
+  if(rec && rec.status) return rec.status;
   if(mKey === todayKey){
     const dueDay = bill.dueDay || 1;
     return todayDate.getDate() > dueDay ? 'overdue' : 'pending';
@@ -530,59 +540,137 @@ function formatMeta(rec){
   const verb = verbMap[rec.status] || 'Updated by';
   return `${verb} ${who}${dateStr ? ' · '+dateStr+', '+timeStr : ''}`;
 }
-
 function outletActiveInMonth(outlet, mKey){
   const start = outlet.startMonth || '0000-00';
   const end = outlet.endMonth || '9999-99';
   return mKey >= start && mKey <= end;
+}
+function billsForOutlet(outletId){
+  return state.billTypes.filter(b=>b.outletId===outletId);
 }
 
 // ================= Render =================
 function render(){
   const mKey = monthKey(viewDate);
   document.getElementById('monthLabel').textContent = monthLabelStr(viewDate);
-  document.getElementById('tableTitle').textContent = monthLabelStr(viewDate) + ' — bill status';
+  document.getElementById('tableTitle').textContent = monthLabelStr(viewDate) + ' — bill status by outlet';
 
   const activeOutlets = state.outlets.filter(o=>outletActiveInMonth(o, mKey));
-
-  const headRow = document.getElementById('headRow');
-  headRow.innerHTML = '<th>Outlet</th>' + state.billTypes.map(b=>`<th class="cell-bill">${escapeHtml(b.name)}</th>`).join('');
-
-  const body = document.getElementById('bodyRows');
-  body.innerHTML = '';
   const today = new Date();
   const todayKey = monthKey(today);
 
   let paidCount=0, pendingCount=0, overdueCount=0;
+  const cardsWrap = document.getElementById('outletCards');
+  cardsWrap.innerHTML = '';
 
   if(activeOutlets.length===0){
     document.getElementById('emptyState').style.display='block';
-    document.getElementById('mainTable').style.display='none';
   }else{
     document.getElementById('emptyState').style.display='none';
-    document.getElementById('mainTable').style.display='table';
 
     activeOutlets.forEach(o=>{
-      const tr = document.createElement('tr');
-      let rowHtml = `<td class="outlet-name">${escapeHtml(o.name)}</td>`;
-      state.billTypes.forEach(b=>{
-        const rec = getRecord(o.id, b.id, mKey);
-        const status = computeStatus(rec, b, mKey, todayKey, today);
-        if(status==='paid') paidCount++;
-        else if(status==='pending') pendingCount++;
-        else if(status==='overdue') overdueCount++;
-        const amtStr = (rec && rec.amount!=null && rec.amount!=='') ? rec.amount : (b.amount || '');
-        const metaStr = (rec && rec.updatedBy && rec.updatedAt) ? formatMeta(rec) : '';
-        rowHtml += `<td class="cell-bill">
-          <div class="status-pill status-${status}" data-outlet="${o.id}" data-bill="${b.id}" title="${metaStr ? escapeAttr(metaStr) : ''}">
-            <span class="dot"></span>${statusLabel(status)}
+      const bills = billsForOutlet(o.id);
+      let card = document.createElement('div');
+      card.className = 'outlet-card';
+
+      const periodStr = `${o.startMonth||'—'} → ${o.endMonth || 'Ongoing'}`;
+
+      let bodyHtml = '';
+      if(bills.length===0){
+        bodyHtml = `<div class="no-bills">No recurring bills added for this outlet yet — add one below.</div>`;
+      }else{
+        bodyHtml = `<table class="bills-table">
+          <thead><tr><th>Bill</th><th>Status</th><th>Amount (RM)</th><th>Due day</th><th></th></tr></thead>
+          <tbody>`;
+        bills.forEach(b=>{
+          const rec = getRecord(o.id, b.id, mKey);
+          const status = computeStatus(rec, b, mKey, todayKey, today);
+          if(status==='paid') paidCount++;
+          else if(status==='pending') pendingCount++;
+          else if(status==='overdue') overdueCount++;
+          const metaStr = (rec && rec.updatedBy && rec.updatedAt) ? formatMeta(rec) : '';
+          bodyHtml += `<tr data-bill-id="${b.id}">
+            <td class="bname-cell"><input class="bname" value="${escapeAttr(b.name)}" /></td>
+            <td>
+              <div class="status-pill status-${status}" data-outlet="${o.id}" data-bill="${b.id}" title="${metaStr ? escapeAttr(metaStr) : ''}">
+                <span class="dot"></span>${statusLabel(status)}
+              </div>
+              ${metaStr ? `<div class="meta">${escapeHtml(metaStr)}</div>` : ''}
+            </td>
+            <td class="num-cell"><input class="bamount mono" type="number" value="${b.amount||''}" /></td>
+            <td class="num-cell"><input class="bdue mono" type="number" min="1" max="31" value="${b.dueDay||''}" /></td>
+            <td><button class="bill-del" title="Remove this bill">✕</button></td>
+          </tr>`;
+        });
+        bodyHtml += `</tbody></table>`;
+      }
+
+      bodyHtml += `<div class="add-bill-row">
+        <input class="abname" placeholder="New bill name, e.g. Sewage" />
+        <input class="abamt" type="number" placeholder="Amount (RM)" />
+        <input class="abdue" type="number" min="1" max="31" placeholder="Due day" />
+        <button class="btn small primary abadd">+ Add bill to this outlet</button>
+      </div>`;
+
+      card.innerHTML = `
+        <div class="oc-head">
+          <div>
+            <div class="oc-name">${escapeHtml(o.name)}</div>
+            <div class="oc-period">Active: ${escapeHtml(periodStr)}</div>
           </div>
-          ${amtStr ? `<div class="amt mono">RM ${amtStr}</div>` : ''}
-          ${metaStr ? `<div class="meta">${escapeHtml(metaStr)}</div>` : ''}
-        </td>`;
+        </div>
+        ${bodyHtml}
+      `;
+      cardsWrap.appendChild(card);
+
+      // bind bill row edits
+      card.querySelectorAll('tr[data-bill-id]').forEach(tr=>{
+        const billId = tr.dataset.billId;
+        const bill = state.billTypes.find(b=>b.id===billId);
+        tr.querySelector('.bname').onchange = e=>{
+          bill.name = e.target.value;
+          sdbUpdate(SHEET_BILLTYPES,'id',billId,{name:bill.name}).catch(()=>showToast('Sync failed'));
+          render();
+        };
+        tr.querySelector('.bamount').onchange = e=>{
+          bill.amount = e.target.value ? Number(e.target.value) : 0;
+          sdbUpdate(SHEET_BILLTYPES,'id',billId,{amount:bill.amount}).catch(()=>showToast('Sync failed'));
+          render();
+        };
+        tr.querySelector('.bdue').onchange = e=>{
+          bill.dueDay = e.target.value ? Number(e.target.value) : 1;
+          sdbUpdate(SHEET_BILLTYPES,'id',billId,{dueDay:bill.dueDay}).catch(()=>showToast('Sync failed'));
+          render();
+        };
+        tr.querySelector('.bill-del').onclick = ()=>{
+          state.billTypes = state.billTypes.filter(b=>b.id!==billId);
+          sdbDelete(SHEET_BILLTYPES,'id',billId).catch(()=>showToast('Sync failed'));
+          showToast('Bill removed');
+          render();
+        };
       });
-      tr.innerHTML = rowHtml;
-      body.appendChild(tr);
+
+      // bind add-bill row
+      const addBtn = card.querySelector('.abadd');
+      addBtn.onclick = ()=>{
+        const nameEl = card.querySelector('.abname');
+        const amtEl = card.querySelector('.abamt');
+        const dueEl = card.querySelector('.abdue');
+        const name = nameEl.value.trim();
+        if(!name) return;
+        const newBill = {
+          id:uid(), outletId:o.id, name,
+          amount: amtEl.value ? Number(amtEl.value) : 0,
+          dueDay: dueEl.value ? Number(dueEl.value) : 7
+        };
+        state.billTypes.push(newBill);
+        render();
+        sdbCreate(SHEET_BILLTYPES, newBill).catch(()=>showToast('Sync failed — check connection'));
+        showToast('Bill added to '+o.name);
+      };
+      card.querySelector('.abname').addEventListener('keydown', e=>{
+        if(e.key==='Enter') addBtn.click();
+      });
     });
   }
 
@@ -592,7 +680,7 @@ function render(){
   document.getElementById('statOverdue').textContent = overdueCount;
 
   renderRail();
-  renderConfig();
+  renderOutletConfig();
   bindCellClicks();
 }
 
@@ -610,10 +698,10 @@ function renderRail(){
     months.push(d);
   }
 
-  // show any outlet that was active in at least one of the last 6 months
   const relevantOutlets = state.outlets.filter(o=>months.some(d=>outletActiveInMonth(o, monthKey(d))));
 
   relevantOutlets.forEach(o=>{
+    const bills = billsForOutlet(o.id);
     const tr = document.createElement('tr');
     let dots = '';
     months.forEach(d=>{
@@ -623,7 +711,7 @@ function renderRail(){
         return;
       }
       let worst = 'na';
-      state.billTypes.forEach(b=>{
+      bills.forEach(b=>{
         const rec = getRecord(o.id, b.id, mk);
         const s = computeStatus(rec, b, mk, todayKeyNow, today);
         const rank = {na:0, paid:1, pending:2, overdue:3};
@@ -655,10 +743,8 @@ function bindCellClicks(){
       const ns = nextStatus(currentStatus);
       const nowIso = new Date().toISOString();
       const newRec = {status:ns, updatedBy:myName, updatedAt:nowIso};
-      if(ns==='paid') newRec.paidDate = nowIso.slice(0,10);
-      else newRec.paidDate = '';
-      if(current && current.amount) newRec.amount = current.amount;
-      else newRec.amount = '';
+      newRec.paidDate = ns==='paid' ? nowIso.slice(0,10) : '';
+      newRec.amount = (current && current.amount) ? current.amount : '';
 
       setRecordLocal(outletId, billId, mKey, newRec);
       render();
@@ -674,26 +760,18 @@ function bindCellClicks(){
   });
 }
 
-// ================= Config: outlets =================
-function renderConfig(){
+// ================= Outlet-level config (name / period / end) =================
+function renderOutletConfig(){
   const rows = document.getElementById('outletRows');
   if(state.outlets.length===0){
     rows.innerHTML = `<div style="font-size:12px;color:var(--muted);padding:6px 0;">No outlets yet — add one above.</div>`;
   }else{
     rows.innerHTML = state.outlets.map(o=>`
       <div class="outlet-row" data-id="${o.id}">
-        <div>
-          <input class="oname" value="${escapeAttr(o.name)}" />
-        </div>
-        <div>
-          <input type="month" class="ostart" value="${o.startMonth||''}" />
-          <div class="period-label">Start</div>
-        </div>
-        <div>
-          <input type="month" class="oend" value="${o.endMonth||''}" placeholder="Ongoing" />
-          <div class="period-label">${o.endMonth ? 'Ends' : 'Ongoing'}</div>
-        </div>
-        <button class="btn danger end-btn">End outlet</button>
+        <div><input class="oname" value="${escapeAttr(o.name)}" /></div>
+        <div><input type="month" class="ostart" value="${o.startMonth||''}" /><div class="period-label">Start</div></div>
+        <div><input type="month" class="oend" value="${o.endMonth||''}" placeholder="Ongoing" /><div class="period-label">${o.endMonth ? 'Ends' : 'Ongoing'}</div></div>
+        <button class="btn danger small end-btn">End outlet</button>
       </div>
     `).join('');
   }
@@ -721,40 +799,6 @@ function renderConfig(){
       document.getElementById('endOutletMonth').value = monthKey(viewDate);
       document.getElementById('endOutletModal').dataset.outletId = id;
       document.getElementById('endOutletModal').style.display = 'flex';
-    };
-  });
-
-  const billRows = document.getElementById('billRows');
-  billRows.innerHTML = state.billTypes.map(b=>`
-    <div class="bill-row" data-id="${b.id}">
-      <input class="bname" value="${escapeAttr(b.name)}" placeholder="Bill name" />
-      <input class="bamount" type="number" value="${b.amount||''}" placeholder="Default amount (RM)" />
-      <input class="bdue" type="number" min="1" max="31" value="${b.dueDay||''}" placeholder="Due day" />
-      <button class="del">✕</button>
-    </div>
-  `).join('');
-  billRows.querySelectorAll('.bill-row').forEach(row=>{
-    const id = row.dataset.id;
-    const bill = state.billTypes.find(b=>b.id===id);
-    row.querySelector('.bname').onchange = e=>{
-      bill.name = e.target.value;
-      sdbUpdate(SHEET_BILLTYPES,'id',id,{name:bill.name}).catch(()=>showToast('Sync failed'));
-      render();
-    };
-    row.querySelector('.bamount').onchange = e=>{
-      bill.amount = e.target.value ? Number(e.target.value) : 0;
-      sdbUpdate(SHEET_BILLTYPES,'id',id,{amount:bill.amount}).catch(()=>showToast('Sync failed'));
-      render();
-    };
-    row.querySelector('.bdue').onchange = e=>{
-      bill.dueDay = e.target.value ? Number(e.target.value) : 1;
-      sdbUpdate(SHEET_BILLTYPES,'id',id,{dueDay:bill.dueDay}).catch(()=>showToast('Sync failed'));
-      render();
-    };
-    row.querySelector('.del').onclick = ()=>{
-      state.billTypes = state.billTypes.filter(b=>b.id!==id);
-      sdbDelete(SHEET_BILLTYPES,'id',id).catch(()=>showToast('Sync failed'));
-      render();
     };
   });
 }
@@ -788,18 +832,11 @@ document.getElementById('addOutletBtn').onclick = ()=>{
   nameInput.value=''; endInput.value='';
   render();
   sdbCreate(SHEET_OUTLETS, newOutlet).catch(()=>showToast('Sync failed — check connection'));
-  showToast('Outlet added');
+  showToast('Outlet added — now add its recurring bills in the card below');
 };
 document.getElementById('newOutletName').addEventListener('keydown', e=>{
   if(e.key==='Enter') document.getElementById('addOutletBtn').click();
 });
-
-document.getElementById('addBillBtn').onclick = ()=>{
-  const newBill = {id:uid(), name:'New bill', amount:0, dueDay:7};
-  state.billTypes.push(newBill);
-  render();
-  sdbCreate(SHEET_BILLTYPES, newBill).catch(()=>showToast('Sync failed — check connection'));
-};
 
 // ================= End-outlet modal =================
 document.getElementById('cancelEndBtn').onclick = ()=>{
