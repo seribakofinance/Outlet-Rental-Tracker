@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SERI BAKO — Outlet Payment Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#1C2541;
+    --navy-soft:#2C3958;
+    --bg:#F7F6F2;
+    --card:#FFFFFF;
+    --line:#E7E4DC;
+    --text:#1C2541;
+    --muted:#767B8A;
+    --teal:#2A9D8F;
+    --teal-soft:#E4F3F1;
+    --amber:#E8A33D;
+    --amber-soft:#FCF1DE;
+    --coral:#E5533C;
+    --coral-soft:#FBE7E3;
+    --slate-soft:#EEF0F5;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Inter',-apple-system,sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .mono{font-family:'JetBrains Mono',monospace; font-variant-numeric:tabular-nums;}
+  .display{font-family:'Space Grotesk',sans-serif;}
+
+  .wrap{max-width:1180px;margin:0 auto;padding:28px 20px 60px;}
+
+  header.top{
+    display:flex;justify-content:space-between;align-items:flex-end;
+    margin-bottom:22px;flex-wrap:wrap;gap:14px;
+  }
+  .eyebrow{
+    font-size:11px;letter-spacing:.12em;text-transform:uppercase;
+    color:var(--muted);font-weight:600;margin-bottom:6px;
+  }
+  h1{
+    font-family:'Space Grotesk',sans-serif;font-weight:700;
+    font-size:28px;margin:0;letter-spacing:-0.01em;
+    display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  }
+  h1 .badge{
+    font-size:11px;font-weight:600;color:var(--teal);background:var(--teal-soft);
+    padding:4px 9px;border-radius:20px;font-family:'Inter',sans-serif;
+  }
+  .month-nav{
+    display:flex;align-items:center;gap:10px;
+    background:var(--card);border:1px solid var(--line);
+    border-radius:12px;padding:6px 8px;
+  }
+  .month-nav button{
+    width:30px;height:30px;border-radius:8px;border:none;
+    background:transparent;color:var(--navy);cursor:pointer;
+    font-size:16px;display:flex;align-items:center;justify-content:center;
+    transition:background .15s;
+  }
+  .month-nav button:hover{background:var(--slate-soft);}
+  .month-label{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:15px;min-width:120px;text-align:center;}
+
+  .stats{
+    display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:22px;
+  }
+  .stat{
+    background:var(--card);border:1px solid var(--line);border-radius:14px;
+    padding:16px 18px;
+  }
+  .stat .n{font-family:'JetBrains Mono',monospace;font-weight:600;font-size:26px;line-height:1;}
+  .stat .l{font-size:12px;color:var(--muted);margin-top:6px;font-weight:500;}
+  .stat.overdue .n{color:var(--coral);}
+  .stat.pending .n{color:var(--amber);}
+  .stat.paid .n{color:var(--teal);}
+
+  .panel{
+    background:var(--card);border:1px solid var(--line);border-radius:16px;
+    overflow:hidden;margin-bottom:20px;
+  }
+  .panel-head{
+    display:flex;justify-content:space-between;align-items:center;
+    padding:16px 20px;border-bottom:1px solid var(--line);
+  }
+  .panel-head h2{font-family:'Space Grotesk',sans-serif;font-size:16px;margin:0;font-weight:600;}
+  .btn{
+    border:1px solid var(--line);background:var(--card);color:var(--navy);
+    padding:7px 13px;border-radius:9px;font-size:13px;font-weight:500;
+    cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s;
+  }
+  .btn:hover{background:var(--slate-soft);}
+  .btn.primary{background:var(--navy);color:#fff;border-color:var(--navy);}
+  .btn.primary:hover{background:var(--navy-soft);}
+  .btn.danger{background:var(--coral-soft);color:#B5392A;border-color:var(--coral-soft);}
+  .btn.danger:hover{background:var(--coral);color:#fff;}
+  .btn.ghost{border:none;color:var(--muted);}
+  .btn.ghost:hover{color:var(--coral);background:transparent;}
+  .btn:disabled{opacity:.5;cursor:not-allowed;}
+
+  table{width:100%;border-collapse:collapse;}
+  thead th{
+    text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.06em;
+    color:var(--muted);font-weight:600;padding:12px 16px;border-bottom:1px solid var(--line);
+    white-space:nowrap;
+  }
+  tbody td{
+    padding:10px 16px;border-bottom:1px solid var(--line);vertical-align:middle;
+  }
+  tbody tr:last-child td{border-bottom:none;}
+  tbody tr:hover{background:#FCFBF9;}
+  .outlet-name{font-weight:600;font-size:14px;}
+  .outlet-name .sub{display:block;font-size:11px;color:var(--muted);font-weight:400;margin-top:2px;}
+
+  .cell-bill{min-width:132px;}
+  .status-pill{
+    display:inline-flex;align-items:center;gap:6px;
+    padding:5px 10px;border-radius:20px;font-size:12px;font-weight:600;
+    cursor:pointer;border:1px solid transparent;user-select:none;
+    transition:transform .1s;
+  }
+  .status-pill:active{transform:scale(.96);}
+  .status-pill .dot{width:6px;height:6px;border-radius:50%;}
+  .status-paid{background:var(--teal-soft);color:#1C7A6E;}
+  .status-paid .dot{background:var(--teal);}
+  .status-pending{background:var(--amber-soft);color:#96661B;}
+  .status-pending .dot{background:var(--amber);}
+  .status-overdue{background:var(--coral-soft);color:#B5392A;}
+  .status-overdue .dot{background:var(--coral);}
+  .status-na{background:var(--slate-soft);color:#A7ABB8;}
+  .status-na .dot{background:#C7CBD6;}
+  .amt{font-size:11px;color:var(--muted);margin-top:3px;}
+  .meta{font-size:10.5px;color:var(--muted);margin-top:3px;line-height:1.4;}
+
+  .rail{display:flex;gap:3px;align-items:center;}
+  .rail .d{width:8px;height:8px;border-radius:50%;background:#DCDEE5;}
+  .rail .d.on-paid{background:var(--teal);}
+  .rail .d.on-pending{background:var(--amber);}
+  .rail .d.on-overdue{background:var(--coral);}
+  .rail .d.inactive{background:transparent;border:1px dashed #D7D9E0;}
+
+  .empty{padding:40px 20px;text-align:center;color:var(--muted);font-size:14px;}
+  .loading{padding:40px 20px;text-align:center;color:var(--muted);font-size:14px;}
+
+  .config{padding:18px 20px;}
+  .eyebrow2{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:600;margin:18px 0 10px;}
+  .eyebrow2:first-child{margin-top:0;}
+  .config input{
+    border:1px solid var(--line);border-radius:9px;
+    padding:8px 12px;font-size:13px;font-family:'Inter',sans-serif;outline:none;
+  }
+  .config input:focus{border-color:var(--navy);}
+
+  .add-outlet-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px;}
+  .add-outlet-row input.oname-new{flex:1;min-width:180px;}
+  .add-outlet-row input[type=month]{min-width:130px;}
+  .field-hint{font-size:10.5px;color:var(--muted);width:100%;margin-top:-6px;margin-bottom:10px;}
+
+  .outlet-row{
+    display:grid;grid-template-columns:1.4fr 1fr 1fr auto;gap:8px;align-items:center;
+    margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid var(--line);
+  }
+  .outlet-row:last-child{border-bottom:none;}
+  .outlet-row input{width:100%;}
+  .outlet-row .period-label{font-size:10.5px;color:var(--muted);margin-top:3px;}
+
+  .bill-config{margin-top:14px;}
+  .bill-row{
+    display:grid;grid-template-columns:1.3fr .7fr .6fr auto;gap:8px;
+    margin-bottom:8px;align-items:center;
+  }
+  .bill-row input{border:1px solid var(--line);border-radius:8px;padding:7px 10px;font-size:13px;outline:none;width:100%;}
+  .bill-row input:focus{border-color:var(--navy);}
+  .bill-row .del{background:none;border:none;color:var(--muted);cursor:pointer;font-size:15px;}
+  .bill-row .del:hover{color:var(--coral);}
+
+  .toast{
+    position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+    background:var(--navy);color:#fff;padding:10px 18px;border-radius:10px;
+    font-size:13px;font-weight:500;opacity:0;pointer-events:none;transition:opacity .2s, transform .2s;
+    z-index:50;max-width:90vw;text-align:center;
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(-4px);}
+
+  .legend{display:flex;gap:16px;font-size:12px;color:var(--muted);margin-top:10px;flex-wrap:wrap;}
+  .legend span{display:inline-flex;align-items:center;gap:6px;}
+  .legend .dot{width:8px;height:8px;border-radius:50%;}
+
+  .name-badge{
+    display:inline-flex;align-items:center;gap:7px;background:var(--card);
+    border:1px solid var(--line);border-radius:20px;padding:6px 12px 6px 6px;
+    cursor:pointer;font-size:12.5px;font-weight:500;color:var(--navy);
+  }
+  .name-badge:hover{border-color:var(--navy);}
+  .name-badge .av{
+    width:22px;height:22px;border-radius:50%;background:var(--navy);color:#fff;
+    display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;
+    font-family:'Space Grotesk',sans-serif;
+  }
+
+  .modal-overlay{
+    position:fixed;inset:0;background:rgba(28,37,65,.45);
+    display:flex;align-items:center;justify-content:center;z-index:100;
+    padding:20px;
+  }
+  .modal-box{
+    background:#fff;border-radius:16px;padding:26px 26px 22px;max-width:380px;width:100%;
+    box-shadow:0 20px 50px rgba(0,0,0,.2);
+  }
+  .modal-box h3{font-family:'Space Grotesk',sans-serif;margin:0 0 8px;font-size:17px;}
+  .modal-box p{font-size:13px;color:var(--muted);margin:0 0 14px;line-height:1.5;}
+  .modal-box input{
+    width:100%;border:1px solid var(--line);border-radius:9px;padding:10px 12px;
+    font-size:14px;font-family:'Inter',sans-serif;outline:none;box-sizing:border-box;margin-bottom:12px;
+  }
+  .modal-box input:focus{border-color:var(--navy);}
+  .modal-actions{display:flex;justify-content:flex-end;gap:8px;}
+  .modal-box .warn{
+    background:var(--coral-soft);color:#B5392A;border-radius:9px;padding:9px 12px;
+    font-size:12px;margin-bottom:14px;line-height:1.5;
+  }
+
+  @media(max-width:640px){
+    .stats{grid-template-columns:repeat(2,1fr);}
+    thead{display:none;}
+    table, tbody, tr, td{display:block;width:100%;}
+    tbody tr{border-bottom:1px solid var(--line);padding:12px 16px;}
+    tbody td{border:none;padding:6px 0;}
+    .cell-bill{min-width:0;}
+    .outlet-row{grid-template-columns:1fr;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <div class="eyebrow">SERI BAKO · Outlet Payments</div>
+      <h1>Payment Tracker <span class="badge">Shared with team</span></h1>
+    </div>
+    <div class="month-nav">
+      <button id="prevMonth">‹</button>
+      <div class="month-label mono" id="monthLabel">—</div>
+      <button id="nextMonth">›</button>
+    </div>
+  </header>
+
+  <div style="display:flex;justify-content:flex-end;margin-bottom:16px;">
+    <div class="name-badge" id="nameBadge" title="Click to change your name">
+      <span class="av" id="nameAv">?</span>
+      <span id="nameText">Set your name</span>
+    </div>
+  </div>
+
+  <div id="loadingState" class="loading">Loading data…</div>
+
+  <div id="mainContent" style="display:none;">
+    <div class="stats">
+      <div class="stat"><div class="n mono" id="statOutlets">0</div><div class="l">Outlets this month</div></div>
+      <div class="stat paid"><div class="n mono" id="statPaid">0</div><div class="l">Paid this month</div></div>
+      <div class="stat pending"><div class="n mono" id="statPending">0</div><div class="l">Pending</div></div>
+      <div class="stat overdue"><div class="n mono" id="statOverdue">0</div><div class="l">Overdue</div></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <h2 id="tableTitle">This month's bills</h2>
+        <button class="btn" id="toggleConfig">Manage outlets & bills</button>
+      </div>
+
+      <div id="configPanel" style="display:none;border-bottom:1px solid var(--line);">
+        <div class="config">
+          <div class="eyebrow2">Add outlet</div>
+          <div class="add-outlet-row">
+            <input class="oname-new" id="newOutletName" placeholder="Outlet name, e.g. Outlet — Muar Jalan Sisi" />
+            <input type="month" id="newOutletStart" />
+            <input type="month" id="newOutletEnd" title="Leave blank if ongoing" />
+            <button class="btn primary" id="addOutletBtn">Add outlet</button>
+          </div>
+          <div class="field-hint">Start = first month it appears. End = leave blank if still operating.</div>
+
+          <div class="eyebrow2">Outlets & their active period</div>
+          <div id="outletRows"></div>
+
+          <div class="eyebrow2 bill-config">Recurring bills (applies to every outlet)</div>
+          <div id="billRows"></div>
+          <button class="btn" id="addBillBtn" style="margin-top:4px;">+ Add bill type</button>
+        </div>
+      </div>
+
+      <div style="overflow-x:auto;">
+        <table id="mainTable">
+          <thead><tr id="headRow"></tr></thead>
+          <tbody id="bodyRows"></tbody>
+        </table>
+      </div>
+      <div class="empty" id="emptyState" style="display:none;">No outlets active this month. Click "Manage outlets & bills" to add one.</div>
+      <div style="padding:14px 20px 18px;">
+        <div class="legend">
+          <span><span class="dot" style="background:var(--teal);"></span>Paid</span>
+          <span><span class="dot" style="background:var(--amber);"></span>Pending</span>
+          <span><span class="dot" style="background:var(--coral);"></span>Overdue</span>
+          <span>Click a status pill to cycle: Pending → Paid → Overdue → Pending.</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel" id="railPanel">
+      <div class="panel-head"><h2>6-month history</h2></div>
+      <div style="overflow-x:auto;">
+        <table>
+          <tbody id="railRows"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div class="modal-overlay" id="nameModal" style="display:none;">
+  <div class="modal-box">
+    <h3>Who's updating this?</h3>
+    <p>So the team can see who marked each bill and when. Stored only on this device — you'll be asked again on a new device or browser.</p>
+    <input id="nameInput" placeholder="Your name, e.g. Wei Ling" maxlength="40" />
+    <div class="modal-actions">
+      <button class="btn primary" id="saveNameBtn">Save</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="endOutletModal" style="display:none;">
+  <div class="modal-box">
+    <h3>End <span id="endOutletName"></span>?</h3>
+    <div class="warn">This stops the outlet from appearing from the month you choose onward. All past records stay exactly as they are — nothing is deleted.</div>
+    <p style="margin-bottom:6px;">Last active month</p>
+    <input type="month" id="endOutletMonth" />
+    <div class="modal-actions">
+      <button class="btn" id="cancelEndBtn">Cancel</button>
+      <button class="btn danger" id="confirmEndBtn">Confirm end</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ================= SheetDB config =================
+const SDB_BASE = 'https://sheetdb.io/api/v1/4hwnweev7uowx';
+const SHEET_OUTLETS = 'Outlets';       // columns: id, name, startMonth, endMonth
+const SHEET_BILLTYPES = 'BillTypes';   // columns: id, name, amount, dueDay
+const SHEET_RECORDS = 'Records';       // columns: recordId, outletId, billId, monthKey, status, amount, paidDate, updatedBy, updatedAt
+
+const STATUS_CYCLE = ['pending','paid','overdue'];
+
+let state = {
+  outlets: [],       // [{id,name,startMonth,endMonth}]
+  billTypes: [],      // [{id,name,amount,dueDay}]
+  records: {}         // key `${outletId}|${billId}|${YYYY-MM}` -> {status, amount, paidDate, updatedBy, updatedAt}
+};
+
+let myName = '';
+let viewDate = new Date();
+viewDate.setDate(1);
+
+function uid(){ return Math.random().toString(36).slice(2,10); }
+function monthKey(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'); }
+function monthLabelStr(d){ return d.toLocaleDateString('en-US',{month:'long',year:'numeric'}); }
+function recordId(outletId,billId,mKey){ return `${outletId}__${billId}__${mKey}`; }
+
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),1800);
+}
+
+// ================= SheetDB helpers =================
+async function sdbGet(sheet){
+  const res = await fetch(`${SDB_BASE}?sheet=${encodeURIComponent(sheet)}`);
+  if(!res.ok) throw new Error('GET failed: '+sheet);
+  return res.json();
+}
+async function sdbCreate(sheet, rowObj){
+  const res = await fetch(`${SDB_BASE}?sheet=${encodeURIComponent(sheet)}`, {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({data:[rowObj]})
+  });
+  if(!res.ok) throw new Error('POST failed: '+sheet);
+  return res.json();
+}
+async function sdbUpdate(sheet, column, value, rowObj){
+  const res = await fetch(`${SDB_BASE}/${encodeURIComponent(column)}/${encodeURIComponent(value)}?sheet=${encodeURIComponent(sheet)}`, {
+    method:'PATCH',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({data:rowObj})
+  });
+  if(!res.ok) throw new Error('PATCH failed: '+sheet);
+  return res.json();
+}
+async function sdbDelete(sheet, column, value){
+  const res = await fetch(`${SDB_BASE}/${encodeURIComponent(column)}/${encodeURIComponent(value)}?sheet=${encodeURIComponent(sheet)}`, {
+    method:'DELETE'
+  });
+  if(!res.ok) throw new Error('DELETE failed: '+sheet);
+  return res.json();
+}
+async function sdbUpsertRecord(recId, rowObj){
+  try{
+    const patchResult = await sdbUpdate(SHEET_RECORDS, 'recordId', recId, rowObj);
+    if(!patchResult.updated || patchResult.updated===0){
+      await sdbCreate(SHEET_RECORDS, Object.assign({recordId:recId}, rowObj));
+    }
+  }catch(e){
+    console.error(e);
+    showToast('Sync failed — check your internet connection');
+  }
+}
+
+// ================= Load / persist =================
+async function loadState(){
+  try{
+    const [outletsRows, billRows, recordRows] = await Promise.all([
+      sdbGet(SHEET_OUTLETS),
+      sdbGet(SHEET_BILLTYPES),
+      sdbGet(SHEET_RECORDS)
+    ]);
+
+    state.outlets = (outletsRows||[]).map(r=>({
+      id:r.id, name:r.name, startMonth:r.startMonth||'', endMonth:r.endMonth||''
+    }));
+    state.billTypes = (billRows||[]).map(r=>({
+      id:r.id, name:r.name, amount:Number(r.amount)||0, dueDay:Number(r.dueDay)||1
+    }));
+    state.records = {};
+    (recordRows||[]).forEach(r=>{
+      if(!r.outletId || !r.billId || !r.monthKey) return;
+      const key = `${r.outletId}|${r.billId}|${r.monthKey}`;
+      state.records[key] = {
+        status:r.status||'pending', amount:r.amount||'', paidDate:r.paidDate||'',
+        updatedBy:r.updatedBy||'', updatedAt:r.updatedAt||''
+      };
+    });
+  }catch(e){
+    console.error(e);
+    showToast('Could not load data from Google Sheet — check the SheetDB link & sheet names');
+  }
+
+  loadMyName();
+  document.getElementById('loadingState').style.display='none';
+  document.getElementById('mainContent').style.display='block';
+  render();
+}
+
+// ================= Name (per-device, local only) =================
+function initials(name){
+  const parts = name.trim().split(/\s+/);
+  if(parts.length===1) return parts[0].slice(0,2).toUpperCase();
+  return (parts[0][0]+parts[parts.length-1][0]).toUpperCase();
+}
+function updateNameBadge(){
+  const av = document.getElementById('nameAv');
+  const txt = document.getElementById('nameText');
+  if(myName){ av.textContent = initials(myName); txt.textContent = myName; }
+  else{ av.textContent = '?'; txt.textContent = 'Set your name'; }
+}
+function loadMyName(){
+  try{ myName = localStorage.getItem('sb-my-name') || ''; }catch(e){ myName=''; }
+  updateNameBadge();
+  if(!myName) document.getElementById('nameModal').style.display = 'flex';
+}
+function saveMyName(name){
+  myName = name;
+  updateNameBadge();
+  try{ localStorage.setItem('sb-my-name', name); }catch(e){}
+}
+document.getElementById('nameBadge').onclick = ()=>{
+  document.getElementById('nameInput').value = myName;
+  document.getElementById('nameModal').style.display = 'flex';
+};
+document.getElementById('saveNameBtn').onclick = ()=>{
+  const v = document.getElementById('nameInput').value.trim();
+  if(!v) return;
+  saveMyName(v);
+  document.getElementById('nameModal').style.display = 'none';
+  showToast('Name saved');
+};
+document.getElementById('nameInput').addEventListener('keydown', e=>{
+  if(e.key==='Enter') document.getElementById('saveNameBtn').click();
+});
+
+// ================= Records =================
+function getRecord(outletId, billId, mKey){
+  return state.records[`${outletId}|${billId}|${mKey}`] || null;
+}
+function setRecordLocal(outletId, billId, mKey, data){
+  state.records[`${outletId}|${billId}|${mKey}`] = data;
+}
+
+function computeStatus(rec, bill, mKey, todayKey, todayDate){
+  if(rec && rec.status) return rec.status; // explicit, manually set value always wins
+  if(mKey === todayKey){
+    const dueDay = bill.dueDay || 1;
+    return todayDate.getDate() > dueDay ? 'overdue' : 'pending';
+  } else if(mKey < todayKey){
+    return 'overdue';
+  } else {
+    return 'na';
+  }
+}
+function nextStatus(cur){
+  const idx = STATUS_CYCLE.indexOf(cur);
+  if(idx===-1) return 'pending';
+  return STATUS_CYCLE[(idx+1)%STATUS_CYCLE.length];
+}
+function statusLabel(s){
+  return {paid:'Paid', pending:'Pending', overdue:'Overdue', na:'Not due'}[s] || s;
+}
+function formatMeta(rec){
+  const who = rec.updatedBy || 'Someone';
+  const d = new Date(rec.updatedAt);
+  const dateStr = isNaN(d) ? '' : d.toLocaleDateString('en-GB',{day:'numeric',month:'short'});
+  const timeStr = isNaN(d) ? '' : d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+  const verbMap = {paid:'Paid by', pending:'Marked pending by', overdue:'Marked overdue by'};
+  const verb = verbMap[rec.status] || 'Updated by';
+  return `${verb} ${who}${dateStr ? ' · '+dateStr+', '+timeStr : ''}`;
+}
+
+function outletActiveInMonth(outlet, mKey){
+  const start = outlet.startMonth || '0000-00';
+  const end = outlet.endMonth || '9999-99';
+  return mKey >= start && mKey <= end;
+}
+
+// ================= Render =================
+function render(){
+  const mKey = monthKey(viewDate);
+  document.getElementById('monthLabel').textContent = monthLabelStr(viewDate);
+  document.getElementById('tableTitle').textContent = monthLabelStr(viewDate) + ' — bill status';
+
+  const activeOutlets = state.outlets.filter(o=>outletActiveInMonth(o, mKey));
+
+  const headRow = document.getElementById('headRow');
+  headRow.innerHTML = '<th>Outlet</th>' + state.billTypes.map(b=>`<th class="cell-bill">${escapeHtml(b.name)}</th>`).join('');
+
+  const body = document.getElementById('bodyRows');
+  body.innerHTML = '';
+  const today = new Date();
+  const todayKey = monthKey(today);
+
+  let paidCount=0, pendingCount=0, overdueCount=0;
+
+  if(activeOutlets.length===0){
+    document.getElementById('emptyState').style.display='block';
+    document.getElementById('mainTable').style.display='none';
+  }else{
+    document.getElementById('emptyState').style.display='none';
+    document.getElementById('mainTable').style.display='table';
+
+    activeOutlets.forEach(o=>{
+      const tr = document.createElement('tr');
+      let rowHtml = `<td class="outlet-name">${escapeHtml(o.name)}</td>`;
+      state.billTypes.forEach(b=>{
+        const rec = getRecord(o.id, b.id, mKey);
+        const status = computeStatus(rec, b, mKey, todayKey, today);
+        if(status==='paid') paidCount++;
+        else if(status==='pending') pendingCount++;
+        else if(status==='overdue') overdueCount++;
+        const amtStr = (rec && rec.amount!=null && rec.amount!=='') ? rec.amount : (b.amount || '');
+        const metaStr = (rec && rec.updatedBy && rec.updatedAt) ? formatMeta(rec) : '';
+        rowHtml += `<td class="cell-bill">
+          <div class="status-pill status-${status}" data-outlet="${o.id}" data-bill="${b.id}" title="${metaStr ? escapeAttr(metaStr) : ''}">
+            <span class="dot"></span>${statusLabel(status)}
+          </div>
+          ${amtStr ? `<div class="amt mono">RM ${amtStr}</div>` : ''}
+          ${metaStr ? `<div class="meta">${escapeHtml(metaStr)}</div>` : ''}
+        </td>`;
+      });
+      tr.innerHTML = rowHtml;
+      body.appendChild(tr);
+    });
+  }
+
+  document.getElementById('statOutlets').textContent = activeOutlets.length;
+  document.getElementById('statPaid').textContent = paidCount;
+  document.getElementById('statPending').textContent = pendingCount;
+  document.getElementById('statOverdue').textContent = overdueCount;
+
+  renderRail();
+  renderConfig();
+  bindCellClicks();
+}
+
+function renderRail(){
+  const railBody = document.getElementById('railRows');
+  railBody.innerHTML = '';
+  if(state.outlets.length===0){ document.getElementById('railPanel').style.display='none'; return; }
+  document.getElementById('railPanel').style.display='block';
+
+  const today = new Date();
+  const todayKeyNow = monthKey(today);
+  const months = [];
+  for(let i=5;i>=0;i--){
+    const d = new Date(viewDate.getFullYear(), viewDate.getMonth()-i, 1);
+    months.push(d);
+  }
+
+  // show any outlet that was active in at least one of the last 6 months
+  const relevantOutlets = state.outlets.filter(o=>months.some(d=>outletActiveInMonth(o, monthKey(d))));
+
+  relevantOutlets.forEach(o=>{
+    const tr = document.createElement('tr');
+    let dots = '';
+    months.forEach(d=>{
+      const mk = monthKey(d);
+      if(!outletActiveInMonth(o, mk)){
+        dots += `<span class="d inactive" title="${monthLabelStr(d)} — not active"></span>`;
+        return;
+      }
+      let worst = 'na';
+      state.billTypes.forEach(b=>{
+        const rec = getRecord(o.id, b.id, mk);
+        const s = computeStatus(rec, b, mk, todayKeyNow, today);
+        const rank = {na:0, paid:1, pending:2, overdue:3};
+        if(rank[s] > rank[worst]) worst = s;
+      });
+      const cls = worst==='paid' ? 'on-paid' : worst==='pending' ? 'on-pending' : worst==='overdue' ? 'on-overdue' : '';
+      dots += `<span class="d ${cls}" title="${monthLabelStr(d)}"></span>`;
+    });
+    tr.innerHTML = `<td style="width:220px;font-weight:600;font-size:13px;">${escapeHtml(o.name)}</td>
+      <td><div class="rail">${dots}</div></td>`;
+    railBody.appendChild(tr);
+  });
+}
+
+function bindCellClicks(){
+  document.querySelectorAll('.status-pill').forEach(el=>{
+    el.onclick = () => {
+      if(!myName){
+        document.getElementById('nameModal').style.display = 'flex';
+        return;
+      }
+      const outletId = el.dataset.outlet;
+      const billId = el.dataset.bill;
+      const mKey = monthKey(viewDate);
+      const bill = state.billTypes.find(b=>b.id===billId);
+      const current = getRecord(outletId, billId, mKey);
+      const today = new Date();
+      const currentStatus = computeStatus(current, bill, mKey, monthKey(today), today);
+      const ns = nextStatus(currentStatus);
+      const nowIso = new Date().toISOString();
+      const newRec = {status:ns, updatedBy:myName, updatedAt:nowIso};
+      if(ns==='paid') newRec.paidDate = nowIso.slice(0,10);
+      else newRec.paidDate = '';
+      if(current && current.amount) newRec.amount = current.amount;
+      else newRec.amount = '';
+
+      setRecordLocal(outletId, billId, mKey, newRec);
+      render();
+      showToast(statusLabel(ns)+' — saving…');
+
+      const recId = recordId(outletId, billId, mKey);
+      sdbUpsertRecord(recId, {
+        outletId, billId, monthKey:mKey,
+        status:newRec.status, amount:newRec.amount, paidDate:newRec.paidDate,
+        updatedBy:newRec.updatedBy, updatedAt:newRec.updatedAt
+      });
+    };
+  });
+}
+
+// ================= Config: outlets =================
+function renderConfig(){
+  const rows = document.getElementById('outletRows');
+  if(state.outlets.length===0){
+    rows.innerHTML = `<div style="font-size:12px;color:var(--muted);padding:6px 0;">No outlets yet — add one above.</div>`;
+  }else{
+    rows.innerHTML = state.outlets.map(o=>`
+      <div class="outlet-row" data-id="${o.id}">
+        <div>
+          <input class="oname" value="${escapeAttr(o.name)}" />
+        </div>
+        <div>
+          <input type="month" class="ostart" value="${o.startMonth||''}" />
+          <div class="period-label">Start</div>
+        </div>
+        <div>
+          <input type="month" class="oend" value="${o.endMonth||''}" placeholder="Ongoing" />
+          <div class="period-label">${o.endMonth ? 'Ends' : 'Ongoing'}</div>
+        </div>
+        <button class="btn danger end-btn">End outlet</button>
+      </div>
+    `).join('');
+  }
+
+  rows.querySelectorAll('.outlet-row').forEach(row=>{
+    const id = row.dataset.id;
+    const outlet = state.outlets.find(o=>o.id===id);
+    row.querySelector('.oname').onchange = e=>{
+      outlet.name = e.target.value;
+      sdbUpdate(SHEET_OUTLETS,'id',id,{name:outlet.name}).catch(()=>showToast('Sync failed'));
+      render();
+    };
+    row.querySelector('.ostart').onchange = e=>{
+      outlet.startMonth = e.target.value;
+      sdbUpdate(SHEET_OUTLETS,'id',id,{startMonth:outlet.startMonth}).catch(()=>showToast('Sync failed'));
+      render();
+    };
+    row.querySelector('.oend').onchange = e=>{
+      outlet.endMonth = e.target.value;
+      sdbUpdate(SHEET_OUTLETS,'id',id,{endMonth:outlet.endMonth}).catch(()=>showToast('Sync failed'));
+      render();
+    };
+    row.querySelector('.end-btn').onclick = ()=>{
+      document.getElementById('endOutletName').textContent = outlet.name;
+      document.getElementById('endOutletMonth').value = monthKey(viewDate);
+      document.getElementById('endOutletModal').dataset.outletId = id;
+      document.getElementById('endOutletModal').style.display = 'flex';
+    };
+  });
+
+  const billRows = document.getElementById('billRows');
+  billRows.innerHTML = state.billTypes.map(b=>`
+    <div class="bill-row" data-id="${b.id}">
+      <input class="bname" value="${escapeAttr(b.name)}" placeholder="Bill name" />
+      <input class="bamount" type="number" value="${b.amount||''}" placeholder="Default amount (RM)" />
+      <input class="bdue" type="number" min="1" max="31" value="${b.dueDay||''}" placeholder="Due day" />
+      <button class="del">✕</button>
+    </div>
+  `).join('');
+  billRows.querySelectorAll('.bill-row').forEach(row=>{
+    const id = row.dataset.id;
+    const bill = state.billTypes.find(b=>b.id===id);
+    row.querySelector('.bname').onchange = e=>{
+      bill.name = e.target.value;
+      sdbUpdate(SHEET_BILLTYPES,'id',id,{name:bill.name}).catch(()=>showToast('Sync failed'));
+      render();
+    };
+    row.querySelector('.bamount').onchange = e=>{
+      bill.amount = e.target.value ? Number(e.target.value) : 0;
+      sdbUpdate(SHEET_BILLTYPES,'id',id,{amount:bill.amount}).catch(()=>showToast('Sync failed'));
+      render();
+    };
+    row.querySelector('.bdue').onchange = e=>{
+      bill.dueDay = e.target.value ? Number(e.target.value) : 1;
+      sdbUpdate(SHEET_BILLTYPES,'id',id,{dueDay:bill.dueDay}).catch(()=>showToast('Sync failed'));
+      render();
+    };
+    row.querySelector('.del').onclick = ()=>{
+      state.billTypes = state.billTypes.filter(b=>b.id!==id);
+      sdbDelete(SHEET_BILLTYPES,'id',id).catch(()=>showToast('Sync failed'));
+      render();
+    };
+  });
+}
+
+function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function escapeAttr(s){ return escapeHtml(s); }
+
+// ================= Nav =================
+document.getElementById('prevMonth').onclick = ()=>{ viewDate.setMonth(viewDate.getMonth()-1); render(); };
+document.getElementById('nextMonth').onclick = ()=>{ viewDate.setMonth(viewDate.getMonth()+1); render(); };
+
+document.getElementById('toggleConfig').onclick = ()=>{
+  const p = document.getElementById('configPanel');
+  p.style.display = p.style.display==='none' ? 'block' : 'none';
+  if(p.style.display==='block' && !document.getElementById('newOutletStart').value){
+    document.getElementById('newOutletStart').value = monthKey(viewDate);
+  }
+};
+
+document.getElementById('addOutletBtn').onclick = ()=>{
+  const nameInput = document.getElementById('newOutletName');
+  const startInput = document.getElementById('newOutletStart');
+  const endInput = document.getElementById('newOutletEnd');
+  const name = nameInput.value.trim();
+  const startMonth = startInput.value || monthKey(viewDate);
+  const endMonth = endInput.value || '';
+  if(!name) return;
+  const id = uid();
+  const newOutlet = {id, name, startMonth, endMonth};
+  state.outlets.push(newOutlet);
+  nameInput.value=''; endInput.value='';
+  render();
+  sdbCreate(SHEET_OUTLETS, newOutlet).catch(()=>showToast('Sync failed — check connection'));
+  showToast('Outlet added');
+};
+document.getElementById('newOutletName').addEventListener('keydown', e=>{
+  if(e.key==='Enter') document.getElementById('addOutletBtn').click();
+});
+
+document.getElementById('addBillBtn').onclick = ()=>{
+  const newBill = {id:uid(), name:'New bill', amount:0, dueDay:7};
+  state.billTypes.push(newBill);
+  render();
+  sdbCreate(SHEET_BILLTYPES, newBill).catch(()=>showToast('Sync failed — check connection'));
+};
+
+// ================= End-outlet modal =================
+document.getElementById('cancelEndBtn').onclick = ()=>{
+  document.getElementById('endOutletModal').style.display='none';
+};
+document.getElementById('confirmEndBtn').onclick = ()=>{
+  const modal = document.getElementById('endOutletModal');
+  const id = modal.dataset.outletId;
+  const chosenMonth = document.getElementById('endOutletMonth').value;
+  const outlet = state.outlets.find(o=>o.id===id);
+  if(outlet && chosenMonth){
+    outlet.endMonth = chosenMonth;
+    sdbUpdate(SHEET_OUTLETS,'id',id,{endMonth:chosenMonth}).catch(()=>showToast('Sync failed'));
+    showToast(`${outlet.name} ends after ${chosenMonth}`);
+  }
+  modal.style.display='none';
+  render();
+};
+
+loadState();
+</script>
+</body>
+</html>
