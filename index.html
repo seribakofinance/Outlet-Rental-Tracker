@@ -104,6 +104,38 @@
   .empty{padding:40px 20px;text-align:center;color:var(--muted);font-size:14px;}
   .loading{padding:40px 20px;text-align:center;color:var(--muted);font-size:14px;}
 
+  /* ---- outstanding summary (all months) ---- */
+  .outstanding-panel{border-color:var(--coral-soft);}
+  .outstanding-panel .panel-head{background:var(--coral-soft);}
+  .outstanding-panel .panel-head h2{color:#B5392A;display:flex;align-items:center;gap:7px;}
+  .outstanding-total{font-family:'JetBrains Mono',monospace;font-size:13px;color:#B5392A;font-weight:600;}
+  .outstanding-panel.all-clear .panel-head{background:var(--teal-soft);}
+  .outstanding-panel.all-clear .panel-head h2{color:#1C7A6E;}
+  .outstanding-panel.all-clear .outstanding-total{color:#1C7A6E;}
+
+  .chart-row{
+    display:flex;align-items:flex-end;gap:10px;height:120px;
+    padding:18px 20px 10px;border-bottom:1px solid var(--line);overflow-x:auto;
+  }
+  .chart-bar{display:flex;flex-direction:column;align-items:center;min-width:46px;cursor:pointer;}
+  .chart-bar .count{font-size:11px;font-weight:600;margin-bottom:5px;font-family:'JetBrains Mono',monospace;color:var(--coral);}
+  .chart-bar .bar{width:26px;border-radius:6px 6px 2px 2px;background:var(--coral);min-height:4px;transition:opacity .15s;}
+  .chart-bar:hover .bar{opacity:.75;}
+  .chart-bar .clabel{font-size:10px;color:var(--muted);margin-top:6px;white-space:nowrap;}
+
+  .outstanding-list{max-height:280px;overflow-y:auto;}
+  .oi-row{
+    display:flex;justify-content:space-between;align-items:center;gap:12px;
+    padding:11px 20px;border-bottom:1px solid var(--line);flex-wrap:wrap;
+  }
+  .oi-row:last-child{border-bottom:none;}
+  .oi-left{font-size:13px;min-width:180px;}
+  .oi-left b{font-weight:600;}
+  .oi-sub{font-size:11px;color:var(--muted);margin-top:2px;}
+  .oi-right{display:flex;align-items:center;gap:12px;}
+  .oi-amt{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;color:var(--coral);min-width:70px;text-align:right;}
+  .oi-more{padding:10px 20px;font-size:12px;color:var(--muted);}
+
   /* ---- outlet management (add / period / end) ---- */
   .config{padding:18px 20px;}
   .eyebrow2{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:600;margin:18px 0 10px;}
@@ -281,6 +313,16 @@
   <div id="loadingState" class="loading">Loading data…</div>
 
   <div id="mainContent" style="display:none;">
+    <div class="panel outstanding-panel" id="outstandingPanel">
+      <div class="panel-head">
+        <h2>⚠ Outstanding across all months</h2>
+        <div class="outstanding-total mono" id="outstandingTotal">—</div>
+      </div>
+      <div id="outstandingChart" class="chart-row"></div>
+      <div id="outstandingList" class="outstanding-list"></div>
+      <div class="empty" id="outstandingEmpty" style="display:none;">All caught up — no overdue bills in any month 🎉</div>
+    </div>
+
     <div class="stats">
       <div class="stat"><div class="n mono" id="statOutlets">0</div><div class="l">Outlets this month</div></div>
       <div class="stat paid"><div class="n mono" id="statPaid">0</div><div class="l">Paid this month</div></div>
@@ -549,6 +591,121 @@ function billsForOutlet(outletId){
   return state.billTypes.filter(b=>b.outletId===outletId);
 }
 
+// Scan every month (from each outlet's start up to the real current month)
+// for bills that are overdue, regardless of which month the user is currently viewing.
+function scanOutstanding(){
+  const today = new Date();
+  const todayKey = monthKey(today);
+  const items = [];
+
+  state.outlets.forEach(o=>{
+    const bills = billsForOutlet(o.id);
+    if(bills.length===0 || !o.startMonth) return;
+    const effectiveEnd = (o.endMonth && o.endMonth < todayKey) ? o.endMonth : todayKey;
+    if(o.startMonth > effectiveEnd) return;
+
+    let cursor = new Date(o.startMonth+'-01');
+    let guard = 0;
+    while(guard < 600){ // safety cap ~50 years of months
+      guard++;
+      const mk = monthKey(cursor);
+      if(mk > effectiveEnd) break;
+      bills.forEach(b=>{
+        const rec = getRecord(o.id, b.id, mk);
+        const status = computeStatus(rec, b, mk, todayKey, today);
+        if(status==='overdue'){
+          items.push({
+            outletId:o.id, outletName:o.name, billId:b.id, billName:b.name,
+            monthKey:mk, amount:(rec && rec.amount) || b.amount || ''
+          });
+        }
+      });
+      cursor.setMonth(cursor.getMonth()+1);
+    }
+  });
+
+  items.sort((a,b)=> a.monthKey.localeCompare(b.monthKey)); // oldest first = most urgent
+  return items;
+}
+
+function monthKeyToLabel(mk){
+  const [y,m] = mk.split('-').map(Number);
+  return new Date(y, m-1, 1).toLocaleDateString('en-US',{month:'short',year:'2-digit'});
+}
+
+function renderOutstanding(){
+  const items = scanOutstanding();
+  const panel = document.getElementById('outstandingPanel');
+  const chartEl = document.getElementById('outstandingChart');
+  const listEl = document.getElementById('outstandingList');
+  const totalEl = document.getElementById('outstandingTotal');
+  const emptyEl = document.getElementById('outstandingEmpty');
+
+  if(items.length===0){
+    panel.classList.add('all-clear');
+    chartEl.style.display='none';
+    listEl.style.display='none';
+    emptyEl.style.display='block';
+    totalEl.textContent = 'All clear';
+    return;
+  }
+
+  panel.classList.remove('all-clear');
+  chartEl.style.display='flex';
+  listEl.style.display='block';
+  emptyEl.style.display='none';
+
+  const totalAmt = items.reduce((sum,it)=> sum + (Number(it.amount)||0), 0);
+  totalEl.textContent = `${items.length} bill${items.length>1?'s':''}${totalAmt>0 ? ' · RM '+totalAmt.toLocaleString() : ''}`;
+
+  // group by month for the chart
+  const byMonth = {};
+  items.forEach(it=>{ byMonth[it.monthKey] = (byMonth[it.monthKey]||0) + 1; });
+  const months = Object.keys(byMonth).sort();
+  const maxCount = Math.max(...months.map(mk=>byMonth[mk]));
+
+  chartEl.innerHTML = months.map(mk=>{
+    const c = byMonth[mk];
+    const h = Math.max(6, Math.round((c/maxCount)*84));
+    return `<div class="chart-bar" data-month="${mk}" title="${monthLabelStr(new Date(mk+'-01'))} — ${c} overdue">
+      <div class="count">${c}</div>
+      <div class="bar" style="height:${h}px;"></div>
+      <div class="clabel">${monthKeyToLabel(mk)}</div>
+    </div>`;
+  }).join('');
+
+  chartEl.querySelectorAll('.chart-bar').forEach(el=>{
+    el.onclick = ()=> jumpToMonth(el.dataset.month);
+  });
+
+  const MAX_LIST = 25;
+  const shown = items.slice(0, MAX_LIST);
+  listEl.innerHTML = shown.map(it=>`
+    <div class="oi-row">
+      <div class="oi-left">
+        <b>${escapeHtml(it.outletName)}</b> — ${escapeHtml(it.billName)}
+        <div class="oi-sub">${monthLabelStr(new Date(it.monthKey+'-01'))}</div>
+      </div>
+      <div class="oi-right">
+        ${it.amount ? `<div class="oi-amt">RM ${it.amount}</div>` : ''}
+        <button class="btn small go-btn" data-month="${it.monthKey}">Go to month</button>
+      </div>
+    </div>
+  `).join('') + (items.length>MAX_LIST ? `<div class="oi-more">+ ${items.length-MAX_LIST} more overdue bill(s) — narrow it down by clicking a bar above.</div>` : '');
+
+  listEl.querySelectorAll('.go-btn').forEach(btn=>{
+    btn.onclick = ()=> jumpToMonth(btn.dataset.month);
+  });
+}
+
+function jumpToMonth(mk){
+  const [y,m] = mk.split('-').map(Number);
+  viewDate = new Date(y, m-1, 1);
+  render();
+  const target = document.getElementById('outletCards');
+  if(target) target.scrollIntoView({behavior:'smooth', block:'start'});
+}
+
 // ================= Render =================
 function render(){
   const mKey = monthKey(viewDate);
@@ -682,6 +839,7 @@ function render(){
   renderRail();
   renderOutletConfig();
   bindCellClicks();
+  renderOutstanding();
 }
 
 function renderRail(){
